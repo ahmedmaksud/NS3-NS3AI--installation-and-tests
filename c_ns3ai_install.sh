@@ -7,6 +7,7 @@
 set -e  # Exit on any error
 
 # Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NS3_VERSION="3.44"
 PYTHON_VERSION="3.11"
 VENV_FILE="venv_name.txt"
@@ -64,7 +65,7 @@ validate_venv() {
 # Function to activate virtual environment
 activate_venv() {
     local venv_name="$1"
-    local venv_path="../$venv_name"
+    local venv_path="${SCRIPT_DIR}/../$venv_name"
 
     if [ ! -d "$venv_path" ]; then
         log_error "Virtual environment '$venv_name' does not exist."

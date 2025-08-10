@@ -8,6 +8,7 @@
 set -e  # Exit on any error
 
 # Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NS3_VERSION="3.44"
 NS3_ARCHIVE="ns-allinone-${NS3_VERSION}.tar.bz2"
 NS3_URL="https://www.nsnam.org/releases/${NS3_ARCHIVE}"
@@ -59,7 +60,7 @@ validate_venv() {
 # Function to activate virtual environment
 activate_venv() {
     local venv_name="$1"
-    local venv_path="../$venv_name"
+    local venv_path="${SCRIPT_DIR}/../$venv_name"
 
     if [ ! -d "$venv_path" ]; then
         log_error "Virtual environment '$venv_name' does not exist."
@@ -146,8 +147,8 @@ configure_python_ns3() {
     # We now configure the ns3 with the python bindings. This is a must.
     ./ns3 configure --enable-examples --enable-tests -- \
       -DNS3_PYTHON_BINDINGS=ON \
-      -DPython3_EXECUTABLE="../../$venv_name/bin/python" \
-      -DNS3_BINDINGS_INSTALL_DIR="../../$venv_name/lib/python${PYTHON_VERSION}/site-packages"
+      -DPython3_EXECUTABLE="${SCRIPT_DIR}/../$venv_name/bin/python" \
+      -DNS3_BINDINGS_INSTALL_DIR="${SCRIPT_DIR}/../$venv_name/lib/python${PYTHON_VERSION}/site-packages"
     
     log_success "NS3 Python bindings configuration completed"
 }

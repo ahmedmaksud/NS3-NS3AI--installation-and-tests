@@ -15,6 +15,7 @@
 set -e  # Exit on any error
 
 # Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 VENV_FILE="venv_name.txt"
 PYTHON_VERSION="3.11"
 
@@ -63,21 +64,21 @@ validate_venv_file() {
 # Function to setup virtual environment
 setup_virtual_environment() {
     local venv_name="$1"
-    
+    local venv_path="${SCRIPT_DIR}/../$venv_name"
     # Check if the virtual environment already exists
-    if [ ! -d "../$venv_name" ]; then
+    if [ ! -d "$venv_path" ]; then
         log_info "Virtual environment '$venv_name' does not exist."
         log_info "🚀 Creating virtual environment '$venv_name'..."
-        python3.11 -m venv "../$venv_name"
+        python3.11 -m venv "$venv_path"
     else
         log_success "Virtual environment '$venv_name' already exists."
     fi
 
     # Check if the virtual environment is already active
-    if [ -z "$VIRTUAL_ENV" ] || [ "$VIRTUAL_ENV" != "$(realpath "../$venv_name")" ]; then
+    if [ -z "$VIRTUAL_ENV" ] || [ "$VIRTUAL_ENV" != "$(realpath "$venv_path")" ]; then
         log_info "Virtual environment is not active."
         log_info "🔗 Activating virtual environment '$venv_name'..."
-        source "../$venv_name/bin/activate"
+        source "$venv_path/bin/activate"
     else
         log_success "Virtual environment '$venv_name' is already active."
     fi

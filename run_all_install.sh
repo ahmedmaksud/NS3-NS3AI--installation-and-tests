@@ -139,11 +139,11 @@ setup_test_environment() {
     
     # Read virtual environment name
     local venv_name=$(cat "$VENV_FILE" | tr -d '\n\r' | xargs)
-    
+    local venv_path="${SCRIPT_DIR}/../$venv_name"
     # Activate virtual environment
-    if [ -d "../$venv_name" ]; then
+    if [ -d "$venv_path" ]; then
         log_info "Activating virtual environment: $venv_name"
-        source "../$venv_name/bin/activate"
+        source "$venv_path/bin/activate"
         log_success "Virtual environment activated"
     else
         log_error "Virtual environment not found: $venv_name"
