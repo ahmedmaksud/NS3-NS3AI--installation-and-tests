@@ -155,13 +155,10 @@ cd NS3-project
 # 2. Clone the repository inside the project directory
 git clone https://github.com/ahmedmaksud/NS3-NS3AI--installation-and-tests.git
 
-# 3. Move repository contents to the project directory (outside the repo folder)
-mv NS3-NS3AI--installation-and-tests/* .
+# 3. Change into the directory
+cd NS3-NS3AI--installation-and-tests
 
-# 4. Remove the empty repository folder (optional - keeps workspace clean)
-rmdir NS3-NS3AI--installation-and-tests
-
-# 5. Run the complete automated installation (everything installs in NS3-project)
+# 4. Run the complete automated installation (everything installs in NS3-project)
 ./run_all_install.sh
 ```
 
