@@ -8,19 +8,19 @@ A comprehensive, automated installation system for NS3 (Network Simulator 3) and
 
 ## 📚 Table of Contents
 
-- [Overview](#overview)
-- [What is NS3?](#what-is-ns3)
-- [What is NS3-AI?](#what-is-ns3-ai)
-- [Features](#features)
-- [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Detailed Installation Process](#detailed-installation-process)
-- [Script Documentation](#script-documentation)
-- [Testing and Verification](#testing-and-verification)
-- [Troubleshooting](#troubleshooting)
-- [Educational Resources](#educational-resources)
-- [Contributing](#contributing)
-- [License](#license)
+- [Overview](#-overview)
+- [What is NS3?](#-what-is-ns3)
+- [What is NS3-AI?](#-what-is-ns3-ai)
+- [Features](#-features)
+- [Prerequisites](#-prerequisites)
+- [Quick Start](#-quick-start)
+- [Detailed Installation Process](#-detailed-installation-process)
+- [Script Documentation](#-script-documentation)
+- [Testing and Verification](#-testing-and-verification)
+- [Troubleshooting](#-troubleshooting)
+- [Educational Resources](#-educational-resources)
+- [Contributing](#-contributing)
+- [License](#-license)
 
 ## 🌟 Overview
 
