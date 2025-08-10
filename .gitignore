@@ -1,0 +1,44 @@
+# Configuration files
+.vscode/
+.idea/
+*.sublime-*
+
+# Python virtual environment
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# NS3 build files
+build/
+cmake-cache/
+*.pcap
+*.cwnd
+*.xml
+*.flowmon
+
+# Log files
+*.log
+*.out
+installation_*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Git files (in case of nested repos)
+.git/
+
+# Backup files
+*.bak
+*.backup

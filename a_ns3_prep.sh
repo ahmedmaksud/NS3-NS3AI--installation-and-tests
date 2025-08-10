@@ -1,0 +1,242 @@
+#!/bin/bash
+# NS3 Environment Preparation Script
+# This script checks for all installs in a convenient way.
+# This script performs the following tasks:
+# 1. Checks if a virtual environment name is provided in the text file.
+# 2. Creates or activates the specified Python virtual environment.
+# 3. Installs required Python packages (cppyy, cmake-format).
+# 4. Defines a list of system dependencies and checks if they are installed.
+# 5. Installs any missing system dependencies using `apt`.
+# 6. Outputs the version of `qmake` at the end.
+
+# Please note that this whole thing can be done using yaml file.
+# But thats something we will do later.
+
+set -e  # Exit on any error
+
+# Configuration
+VENV_FILE="venv_name.txt"
+PYTHON_VERSION="3.11"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Logging functions
+log_info() {
+    echo -e "${BLUE}ℹ️  $1${NC}"
+}
+
+log_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+log_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+log_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+# Function to validate virtual environment name file
+validate_venv_file() {
+    if [ ! -f "$VENV_FILE" ]; then
+        log_error "Virtual environment name file '$VENV_FILE' not found."
+        log_info "Please create the file and add the virtual environment name."
+        exit 1
+    fi
+
+    VENV_NAME=$(cat "$VENV_FILE" | tr -d '\n\r' | xargs)
+
+    if [ -z "$VENV_NAME" ]; then
+        log_error "Virtual environment name is empty in '$VENV_FILE'."
+        exit 1
+    fi
+
+    echo "$VENV_NAME"
+}
+
+# Function to setup virtual environment
+setup_virtual_environment() {
+    local venv_name="$1"
+    
+    # Check if the virtual environment already exists
+    if [ ! -d "../$venv_name" ]; then
+        log_info "Virtual environment '$venv_name' does not exist."
+        log_info "🚀 Creating virtual environment '$venv_name'..."
+        python3.11 -m venv "../$venv_name"
+    else
+        log_success "Virtual environment '$venv_name' already exists."
+    fi
+
+    # Check if the virtual environment is already active
+    if [ -z "$VIRTUAL_ENV" ] || [ "$VIRTUAL_ENV" != "$(realpath "../$venv_name")" ]; then
+        log_info "Virtual environment is not active."
+        log_info "🔗 Activating virtual environment '$venv_name'..."
+        source "../$venv_name/bin/activate"
+    else
+        log_success "Virtual environment '$venv_name' is already active."
+    fi
+}
+
+
+# Function to update system
+update_system() {
+    log_info "Updating system packages..."
+    sudo apt update
+    sudo apt upgrade -y
+    log_success "System update completed"
+}
+
+# Function to install Python packages
+install_python_packages() {
+    log_info "📦 Installing required Python packages..."
+    
+    local python_packages=(
+        "pip --upgrade"
+        "cppyy"
+        "cmake-format"
+        "setuptools"
+        "wheel"
+        "pyyaml"
+        "tensorflow==2.18.0"
+        "matplotlib"
+        "pandas"
+        "tqdm"
+    )
+    
+    # Upgrade pip first
+    pip install --upgrade pip
+    
+    # Install other packages
+    for pkg in "${python_packages[@]:1}"; do
+        log_info "Installing Python package: $pkg"
+        pip install $pkg
+    done
+    
+    # VVI: Install same version of torch as the libtorch.
+    log_info "Installing PyTorch (CPU version)..."
+    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+    
+    log_success "All Python packages installed successfully"
+}
+
+# Function to define system packages
+define_system_packages() {
+    # List of required packages
+    local packages=(
+        python3-apt
+        gcc git g++ python3 python3-dev pkg-config sqlite3
+        python3-setuptools python3-numpy python3-pygraphviz python3-pip
+        mercurial cmake libc6-dev libc6-dev-i386
+        gdb valgrind gsl-bin libgsl-dev libgsl27 libgslcblas0
+        libsqlite3-dev libxml2 libxml2-dev libgtk-3-dev
+        uncrustify doxygen graphviz imagemagick texlive texlive-extra-utils
+        texlive-latex-extra texlive-font-utils python3-sphinx dia
+        curl asciidoc source-highlight libgtk2.0-0 libgtk2.0-dev
+        python3-pybind11
+        ninja-build
+        # The QT5 gives a lot of troubles. To go around we install them in parts.
+        qtbase5-dev qtchooser qt5-qmake qtbase5-dev-tools
+        libdpdk-dev
+        libprotobuf-dev protobuf-compiler
+        pybind11-dev
+        libabsl-dev
+        gir1.2-goocanvas-2.0 python3-gi python3-gi-cairo gir1.2-gtk-3.0 ipython3
+        tcpdump wireshark openmpi-bin openmpi-common openmpi-doc
+        libopenmpi-dev texlive dvipng latexmk libeigen3-dev
+        lxc-utils lxc-templates vtun uml-utilities ebtables bridge-utils libboost-all-dev
+        ccache python3-full
+        gedit
+        tree
+    )
+    echo "${packages[@]}"
+}
+
+# Function to install system dependencies
+install_system_dependencies() {
+    local packages=($(define_system_packages))
+    
+    log_info "🔍 Checking and installing missing dependencies..."
+    
+    sudo apt update
+    
+    local failed_packages=()
+    local installed_count=0
+    local already_installed_count=0
+    
+    for pkg in "${packages[@]}"; do
+        # Skip comments
+        [[ "$pkg" =~ ^#.*$ ]] && continue
+        
+        if dpkg -s "$pkg" >/dev/null 2>&1; then
+            log_success "$pkg is already installed"
+            ((already_installed_count++))
+        else
+            log_info "📦 Installing $pkg..."
+            if sudo apt install -y "$pkg"; then
+                log_success "Successfully installed $pkg"
+                ((installed_count++))
+            else
+                log_error "Failed to install $pkg"
+                failed_packages+=("$pkg")
+            fi
+        fi
+    done
+    
+    # Summary
+    log_success "Installation summary:"
+    log_info "  - Already installed: $already_installed_count packages"
+    log_info "  - Newly installed: $installed_count packages"
+    
+    if [ ${#failed_packages[@]} -gt 0 ]; then
+        log_error "Failed to install ${#failed_packages[@]} packages:"
+        for pkg in "${failed_packages[@]}"; do
+            log_error "  - $pkg"
+        done
+        log_error "Please check your system or package manager."
+        exit 1
+    fi
+}
+
+# Function to verify installation
+verify_installation() {
+    log_info "Verifying installation..."
+    if command -v qmake >/dev/null 2>&1; then
+        log_success "All dependencies checked and installed as needed."
+        qmake --version
+    else
+        log_error "qmake not found. Installation may have failed."
+        exit 1
+    fi
+}
+
+# Main execution function
+main() {
+    log_info "Starting NS3 environment preparation..."
+    
+    # Validate and setup virtual environment
+    local venv_name=$(validate_venv_file)
+    setup_virtual_environment "$venv_name"
+    
+    # Update system
+    update_system
+    
+    # Install Python packages
+    install_python_packages
+    
+    # Install system dependencies
+    install_system_dependencies
+    
+    # Verify installation
+    verify_installation
+    
+    log_success "NS3 environment preparation completed successfully!"
+}
+
+# Run main function
+main "$@"
