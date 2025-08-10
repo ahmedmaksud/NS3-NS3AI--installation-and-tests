@@ -30,14 +30,14 @@ This repository provides a complete, automated installation system for NS3 (Netw
 
 **Before running the scripts:**
 
-1. Clone this repository
-2. Create a main project directory: `mkdir NS3-project`
-3. Copy all repository contents to the NS3-project folder:
+1. Create a main project directory: `mkdir NS3-project`
+2. Clone the repository inside the project directory
+3. Copy all repository contents to the NS3-project folder (outside the repo folder):
    ```bash
-   git clone https://github.com/ahmedmaksud/NS3-NS3AI--installation-and-tests.git
    mkdir NS3-project
-   cp -r NS3-NS3AI--installation-and-tests/* NS3-project/
    cd NS3-project
+   git clone https://github.com/ahmedmaksud/NS3-NS3AI--installation-and-tests.git
+   cp -r NS3-NS3AI--installation-and-tests/* .
    ```
 4. All installations will happen in this NS3-project directory
 5. The repository folder can be kept separate as a backup
@@ -147,26 +147,24 @@ This repository provides a complete, automated installation system for NS3 (Netw
 ### Complete Setup and Installation
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/ahmedmaksud/NS3-NS3AI--installation-and-tests.git
-
-# 2. Create main project directory
+# 1. Create main project directory
 mkdir NS3-project
-
-# 3. Copy repository contents to project directory
-cp -r NS3-NS3AI--installation-and-tests/* NS3-project/
-
-# 4. Navigate to project directory
 cd NS3-project
 
-# 5. Run the complete automated installation
+# 2. Clone the repository inside the project directory
+git clone https://github.com/ahmedmaksud/NS3-NS3AI--installation-and-tests.git
+
+# 3. Copy repository contents to the project directory (outside the repo folder)
+cp -r NS3-NS3AI--installation-and-tests/* .
+
+# 4. Run the complete automated installation (everything installs in NS3-project)
 ./run_all_install.sh
 ```
 
 ### Alternative: Step-by-Step Installation
 
 ```bash
-# After completing steps 1-4 above:
+# After completing the setup steps above (creating NS3-project and copying files):
 # 1. Environment preparation
 ./a_ns3_prep.sh
 
