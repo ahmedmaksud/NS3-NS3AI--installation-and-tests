@@ -32,15 +32,16 @@ This repository provides a complete, automated installation system for NS3 (Netw
 
 1. Create a main project directory: `mkdir NS3-project`
 2. Clone the repository inside the project directory
-3. Copy all repository contents to the NS3-project folder (outside the repo folder):
+3. Move all repository contents to the NS3-project folder (outside the repo folder):
    ```bash
    mkdir NS3-project
    cd NS3-project
    git clone https://github.com/ahmedmaksud/NS3-NS3AI--installation-and-tests.git
-   cp -r NS3-NS3AI--installation-and-tests/* .
+   mv NS3-NS3AI--installation-and-tests/* .
+   rmdir NS3-NS3AI--installation-and-tests
    ```
 4. All installations will happen in this NS3-project directory
-5. The repository folder can be kept separate as a backup
+5. The repository files are now in the project root for clean execution
 
 ### 🎯 Key Benefits
 
@@ -154,10 +155,13 @@ cd NS3-project
 # 2. Clone the repository inside the project directory
 git clone https://github.com/ahmedmaksud/NS3-NS3AI--installation-and-tests.git
 
-# 3. Copy repository contents to the project directory (outside the repo folder)
-cp -r NS3-NS3AI--installation-and-tests/* .
+# 3. Move repository contents to the project directory (outside the repo folder)
+mv NS3-NS3AI--installation-and-tests/* .
 
-# 4. Run the complete automated installation (everything installs in NS3-project)
+# 4. Remove the empty repository folder (optional - keeps workspace clean)
+rmdir NS3-NS3AI--installation-and-tests
+
+# 5. Run the complete automated installation (everything installs in NS3-project)
 ./run_all_install.sh
 ```
 
