@@ -62,10 +62,15 @@ activate_venv() {
     local venv_name="$1"
     local venv_path="${SCRIPT_DIR}/../$venv_name"
 
+    # Check if the virtual environment exists, create if it doesn't
     if [ ! -d "$venv_path" ]; then
-        log_error "Virtual environment '$venv_name' does not exist."
-        log_info "🚀 Creating virtual environment '$venv_name'..."
-        python3.11 -m venv "$venv_path"
+        log_info "Virtual environment '$venv_name' does not exist. Creating it with Python 3.11..."
+        if python3.11 -m venv "$venv_path"; then
+            log_success "Virtual environment '$venv_name' created successfully with Python 3.11"
+        else
+            log_error "Failed to create virtual environment '$venv_name' with Python 3.11"
+            exit 1
+        fi
     else
         log_success "Virtual environment '$venv_name' already exists."
     fi
@@ -188,6 +193,7 @@ main() {
     # Stage 1: Basic NS3 installation
     log_info "=== Stage 1: Basic NS3 Installation ==="
     configure_basic_ns3
+    build_ns3
     run_examples "basic installation"
     
     # Stage 2: NS3 with Python bindings
@@ -200,7 +206,7 @@ main() {
     run_examples "with Python bindings"
     
     # Go back to the root directory
-    cd "../../founding-scripts"
+    cd "../../NS3-NS3AI--installation-and-tests"
     
     # Cleanup
     cleanup

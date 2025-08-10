@@ -12,7 +12,8 @@
 # Please note that this whole thing can be done using yaml file.
 # But thats something we will do later.
 
-set -e  # Exit on any error
+# Note: Removed set -e to handle errors more gracefully
+# Individual functions will handle errors explicitly
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -47,7 +48,8 @@ log_error() {
 validate_venv_file() {
     if [ ! -f "$VENV_FILE" ]; then
         log_error "Virtual environment name file '$VENV_FILE' not found."
-        log_info "Please create the file and add the virtual environment name."
+        log_error "Please create the file and add the virtual environment name."
+        log_info "Example: echo 'my_venv_name' > $VENV_FILE"
         exit 1
     fi
 
@@ -55,6 +57,8 @@ validate_venv_file() {
 
     if [ -z "$VENV_NAME" ]; then
         log_error "Virtual environment name is empty in '$VENV_FILE'."
+        log_error "Please add a valid virtual environment name to the file."
+        log_info "Example: echo 'my_venv_name' > $VENV_FILE"
         exit 1
     fi
 
@@ -65,11 +69,16 @@ validate_venv_file() {
 setup_virtual_environment() {
     local venv_name="$1"
     local venv_path="${SCRIPT_DIR}/../$venv_name"
-    # Check if the virtual environment already exists
+    
+    # Check if the virtual environment exists, create if it doesn't
     if [ ! -d "$venv_path" ]; then
-        log_info "Virtual environment '$venv_name' does not exist."
-        log_info "🚀 Creating virtual environment '$venv_name'..."
-        python3.11 -m venv "$venv_path"
+        log_info "Virtual environment '$venv_name' does not exist. Creating it with Python 3.11..."
+        if python3.11 -m venv "$venv_path"; then
+            log_success "Virtual environment '$venv_name' created successfully with Python 3.11"
+        else
+            log_error "Failed to create virtual environment '$venv_name' with Python 3.11"
+            exit 1
+        fi
     else
         log_success "Virtual environment '$venv_name' already exists."
     fi
@@ -110,20 +119,57 @@ install_python_packages() {
         "tqdm"
     )
     
+    local failed_python_packages=()
+    
     # Upgrade pip first
-    pip install --upgrade pip
+    log_info "Installing Python package: pip --upgrade"
+    if ! pip install --upgrade pip; then
+        log_warning "Failed to upgrade pip, but continuing..."
+        failed_python_packages+=("pip")
+    fi
     
     # Install other packages
     for pkg in "${python_packages[@]:1}"; do
         log_info "Installing Python package: $pkg"
-        pip install $pkg
+        if ! pip install $pkg; then
+            echo ""
+            echo "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨"
+            echo "❌ PYTHON PACKAGE INSTALLATION FAILED: $pkg"
+            echo "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨"
+            echo ""
+            failed_python_packages+=("$pkg")
+        fi
     done
     
     # VVI: Install same version of torch as the libtorch.
     log_info "Installing PyTorch (CPU version)..."
-    pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+    if ! pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu; then
+        echo ""
+        echo "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨"
+        echo "❌ PYTORCH INSTALLATION FAILED"
+        echo "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨"
+        echo ""
+        failed_python_packages+=("torch torchvision torchaudio")
+    fi
     
-    log_success "All Python packages installed successfully"
+    if [ ${#failed_python_packages[@]} -gt 0 ]; then
+        echo ""
+        echo "========================================================"
+        echo "🚨🚨🚨 PYTHON PACKAGE FAILURES DETECTED 🚨🚨🚨"
+        echo "========================================================"
+        log_error "Failed to install ${#failed_python_packages[@]} Python packages:"
+        for pkg in "${failed_python_packages[@]}"; do
+            echo "❌❌❌ FAILED: $pkg ❌❌❌"
+        done
+        echo "========================================================"
+        echo "⚠️  CONTINUING INSTALLATION DESPITE FAILURES ⚠️"
+        echo "========================================================"
+        log_info "Failed Python packages list saved to: /tmp/ns3_failed_python_packages.txt"
+        printf '%s\n' "${failed_python_packages[@]}" > /tmp/ns3_failed_python_packages.txt
+        echo ""
+    fi
+    
+    log_success "Python package installation phase completed"
 }
 
 # Function to define system packages
@@ -183,7 +229,11 @@ install_system_dependencies() {
                 log_success "Successfully installed $pkg"
                 ((installed_count++))
             else
-                log_error "Failed to install $pkg"
+                echo ""
+                echo "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨"
+                echo "❌ PACKAGE INSTALLATION FAILED: $pkg"
+                echo "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨"
+                echo ""
                 failed_packages+=("$pkg")
             fi
         fi
@@ -195,12 +245,22 @@ install_system_dependencies() {
     log_info "  - Newly installed: $installed_count packages"
     
     if [ ${#failed_packages[@]} -gt 0 ]; then
+        echo ""
+        echo "========================================================"
+        echo "🚨🚨🚨 PACKAGE INSTALLATION FAILURES DETECTED 🚨🚨🚨"
+        echo "========================================================"
         log_error "Failed to install ${#failed_packages[@]} packages:"
         for pkg in "${failed_packages[@]}"; do
-            log_error "  - $pkg"
+            echo "❌❌❌ FAILED: $pkg ❌❌❌"
         done
-        log_error "Please check your system or package manager."
-        exit 1
+        echo "========================================================"
+        echo "⚠️  CONTINUING INSTALLATION DESPITE FAILURES ⚠️"
+        echo "========================================================"
+        log_warning "Some packages failed to install, but continuing..."
+        log_info "You may need to install these packages manually later."
+        log_info "Failed packages list saved to: /tmp/ns3_failed_packages.txt"
+        printf '%s\n' "${failed_packages[@]}" > /tmp/ns3_failed_packages.txt
+        echo ""
     fi
 }
 
@@ -211,8 +271,8 @@ verify_installation() {
         log_success "All dependencies checked and installed as needed."
         qmake --version
     else
-        log_error "qmake not found. Installation may have failed."
-        exit 1
+        log_warning "qmake not found. Some QT packages may not be installed properly."
+        log_info "This may not prevent NS3 installation from proceeding."
     fi
 }
 
@@ -236,7 +296,30 @@ main() {
     # Verify installation
     verify_installation
     
-    log_success "NS3 environment preparation completed successfully!"
+    # Check for any failure summaries
+    echo ""
+    echo "========================================================"
+    echo "🎯 INSTALLATION SUMMARY"
+    echo "========================================================"
+    
+    if [ -f "/tmp/ns3_failed_python_packages.txt" ] || [ -f "/tmp/ns3_failed_packages.txt" ]; then
+        echo "⚠️  SOME PACKAGES FAILED TO INSTALL:"
+        if [ -f "/tmp/ns3_failed_python_packages.txt" ]; then
+            echo "   📋 Python packages: /tmp/ns3_failed_python_packages.txt"
+        fi
+        if [ -f "/tmp/ns3_failed_packages.txt" ]; then
+            echo "   📋 System packages: /tmp/ns3_failed_packages.txt"
+        fi
+        echo ""
+        echo "🔧 MANUAL INSTALLATION REQUIRED:"
+        echo "   Please install the failed packages manually before proceeding"
+        echo "   with NS3 compilation."
+        echo ""
+        log_warning "NS3 environment preparation completed WITH WARNINGS!"
+    else
+        log_success "NS3 environment preparation completed successfully!"
+    fi
+    echo "========================================================"
 }
 
 # Run main function

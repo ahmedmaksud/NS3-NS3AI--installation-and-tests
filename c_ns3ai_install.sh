@@ -67,10 +67,15 @@ activate_venv() {
     local venv_name="$1"
     local venv_path="${SCRIPT_DIR}/../$venv_name"
 
+    # Check if the virtual environment exists, create if it doesn't
     if [ ! -d "$venv_path" ]; then
-        log_error "Virtual environment '$venv_name' does not exist."
-        log_info "🚀 Creating virtual environment '$venv_name'..."
-        python3.11 -m venv "$venv_path"
+        log_info "Virtual environment '$venv_name' does not exist. Creating it with Python 3.11..."
+        if python3.11 -m venv "$venv_path"; then
+            log_success "Virtual environment '$venv_name' created successfully with Python 3.11"
+        else
+            log_error "Failed to create virtual environment '$venv_name' with Python 3.11"
+            exit 1
+        fi
     else
         log_success "Virtual environment '$venv_name' already exists."
     fi
@@ -117,7 +122,7 @@ clone_ns3ai() {
     
     if [ -d "contrib/ai" ]; then
         log_warning "NS3-AI directory already exists, removing old version..."
-        rm -rf contrib/ai
+        sudo rm -rf contrib/ai
     fi
     
     log_info "Cloning NS3-AI repository..."
@@ -181,6 +186,24 @@ install_pytorch() {
     log_info "Extracting LibTorch..."
     unzip libtorch.zip -d contrib/ai/model
     log_success "PyTorch C library installed successfully"
+}
+
+# Function to fix LibTorch linking issues
+fix_libtorch_linking() {
+    log_info "Fixing LibTorch linking issues (excluding problematic libtorch_python.so)..."
+    
+    cd contrib/ai
+    
+    # Create backup of original CMakeLists.txt
+    cp CMakeLists.txt CMakeLists.txt.backup
+    
+    # Replace the file glob with specific essential libraries to avoid Python compatibility issues
+    sed -i 's/file(GLOB Torch_LIBRARIES "${Libtorch_LIBRARY_DIR}\/\*\.so" "${Libtorch_LIBRARY_DIR}\/\*\.dylib")/set(Torch_LIBRARIES\n            "${Libtorch_LIBRARY_DIR}\/libtorch.so"\n            "${Libtorch_LIBRARY_DIR}\/libtorch_cpu.so"\n            "${Libtorch_LIBRARY_DIR}\/libc10.so"\n            "${Libtorch_LIBRARY_DIR}\/libshm.so"\n            "${Libtorch_LIBRARY_DIR}\/libtorch_global_deps.so"\n        )/' CMakeLists.txt
+    
+    cd ../..
+    
+    log_success "LibTorch linking configuration fixed"
+    log_warning "Excluded libtorch_python.so to avoid Python 3.12 compatibility issues"
 }
 
 
@@ -334,6 +357,9 @@ main() {
     
     # Install PyTorch C library
     install_pytorch
+    
+    # Fix LibTorch linking issues
+    fix_libtorch_linking
     
     # Install Python NS3-AI packages
     install_python_ns3ai_packages
