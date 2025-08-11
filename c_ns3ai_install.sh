@@ -133,7 +133,8 @@ install_cuda_support() {
     log_info "Checking if CUDA installation is needed..."
     
     # Check for NVIDIA GPU
-    gpu_status=$(check_nvidia_gpu; echo $?)
+    check_nvidia_gpu >/dev/null 2>&1
+    gpu_status=$?
     
     case $gpu_status in
         0)
@@ -192,7 +193,8 @@ install_tensorflow() {
     log_info "Installing TensorFlow C library..."
     
     # Determine which TensorFlow version to use based on GPU availability
-    gpu_status=$(check_nvidia_gpu; echo $?)
+    check_nvidia_gpu >/dev/null 2>&1
+    gpu_status=$?
     
     if [ $gpu_status -eq 0 ]; then
         log_info "Using GPU-enabled TensorFlow"
