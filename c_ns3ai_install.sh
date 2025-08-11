@@ -15,8 +15,10 @@ TENSORFLOW_VERSION="2.18.0"
 LIBTORCH_VERSION="2.7.0"
 
 # URLs and filenames
-TENSORFLOW_FILENAME="libtensorflow-gpu-linux-x86_64.tar.gz"
-TENSORFLOW_URL="https://storage.googleapis.com/tensorflow/versions/${TENSORFLOW_VERSION}/${TENSORFLOW_FILENAME}"
+TENSORFLOW_CPU_FILENAME="libtensorflow-cpu-linux-x86_64.tar.gz"
+TENSORFLOW_GPU_FILENAME="libtensorflow-gpu-linux-x86_64.tar.gz"
+TENSORFLOW_CPU_URL="https://storage.googleapis.com/tensorflow/versions/${TENSORFLOW_VERSION}/${TENSORFLOW_CPU_FILENAME}"
+TENSORFLOW_GPU_URL="https://storage.googleapis.com/tensorflow/versions/${TENSORFLOW_VERSION}/${TENSORFLOW_GPU_FILENAME}"
 LIBTORCH_URL="https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-${LIBTORCH_VERSION}%2Bcpu.zip"
 NS3AI_REPO="https://github.com/hust-diangroup/ns3-ai.git"
 
@@ -100,18 +102,69 @@ setup_environment() {
     # export PYTHONPATH=$PYTHONPATH:ns-allinone-3.44/ns-3.44/contrib/ai/model/gym-interface/py
 }
 
+# Function to check for NVIDIA GPU
+check_nvidia_gpu() {
+    log_info "Checking for NVIDIA GPU..."
+    
+    # Check if nvidia-smi is available and working
+    if command -v nvidia-smi >/dev/null 2>&1; then
+        if nvidia-smi >/dev/null 2>&1; then
+            log_success "NVIDIA GPU detected and drivers are working"
+            return 0
+        else
+            log_warning "nvidia-smi found but not working properly"
+            return 1
+        fi
+    fi
+    
+    # Check for NVIDIA GPU via lspci
+    if lspci | grep -i nvidia >/dev/null 2>&1; then
+        log_warning "NVIDIA GPU detected but drivers may not be installed"
+        return 2
+    fi
+    
+    # No NVIDIA GPU found
+    log_info "No NVIDIA GPU detected on this system"
+    return 1
+}
+
 # Function to install CUDA support
 install_cuda_support() {
-    log_info "Installing CUDA for GPU support if needed..."
-    log_warning "This will install nvidia-cuda-toolkit - may take some time"
+    log_info "Checking if CUDA installation is needed..."
     
-    sudo apt install nvidia-cuda-toolkit
+    # Check for NVIDIA GPU
+    gpu_status=$(check_nvidia_gpu; echo $?)
     
-    log_info "Checking CUDA installation..."
-    nvcc --version
-    nvidia-smi
-    
-    log_success "CUDA installation completed"
+    case $gpu_status in
+        0)
+            log_info "NVIDIA GPU with working drivers detected. Installing CUDA support..."
+            log_warning "This will install nvidia-cuda-toolkit - may take some time"
+            
+            sudo apt install -y nvidia-cuda-toolkit
+            
+            log_info "Checking CUDA installation..."
+            nvcc --version
+            nvidia-smi
+            
+            log_success "CUDA installation completed"
+            ;;
+        2)
+            log_warning "NVIDIA GPU detected but drivers not properly installed"
+            read -p "Do you want to install CUDA anyway? (y/N): " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                log_info "Installing CUDA support..."
+                sudo apt install -y nvidia-cuda-toolkit
+                log_success "CUDA installation completed (GPU drivers may need separate installation)"
+            else
+                log_info "Skipping CUDA installation"
+            fi
+            ;;
+        *)
+            log_info "No NVIDIA GPU detected. Skipping CUDA installation."
+            log_info "NS3-AI will work with CPU-only TensorFlow and PyTorch libraries"
+            ;;
+    esac
 }
 
 
@@ -138,6 +191,19 @@ clone_ns3ai() {
 install_tensorflow() {
     log_info "Installing TensorFlow C library..."
     
+    # Determine which TensorFlow version to use based on GPU availability
+    gpu_status=$(check_nvidia_gpu; echo $?)
+    
+    if [ $gpu_status -eq 0 ]; then
+        log_info "Using GPU-enabled TensorFlow"
+        TENSORFLOW_FILENAME="$TENSORFLOW_GPU_FILENAME"
+        TENSORFLOW_URL="$TENSORFLOW_GPU_URL"
+    else
+        log_info "Using CPU-only TensorFlow (no NVIDIA GPU detected or CUDA not available)"
+        TENSORFLOW_FILENAME="$TENSORFLOW_CPU_FILENAME"
+        TENSORFLOW_URL="$TENSORFLOW_CPU_URL"
+    fi
+    
     # Need to get libtensorflow and libtorch
     # Make sure to include correct links depending on the hardware
     # It is very important to get the correct version of libtorch and libtensorflow
@@ -153,7 +219,7 @@ install_tensorflow() {
     if [ -f "$TENSORFLOW_FILENAME" ]; then
         log_info "TensorFlow archive already exists, skipping download"
     else
-        log_info "Downloading TensorFlow ${TENSORFLOW_VERSION}..."
+        log_info "Downloading TensorFlow ${TENSORFLOW_VERSION} ($([ $gpu_status -eq 0 ] && echo "GPU" || echo "CPU") version)..."
         wget -q --no-check-certificate "$TENSORFLOW_URL"
     fi
     
@@ -346,13 +412,13 @@ main() {
     # Setup environment variables
     setup_environment
     
-    # Install CUDA support
+    # Check for NVIDIA GPU and install CUDA support if available
     install_cuda_support
     
     # Clone NS3-AI repository
     clone_ns3ai
     
-    # Install TensorFlow C library
+    # Install TensorFlow C library (CPU or GPU version based on hardware)
     install_tensorflow
     
     # Install PyTorch C library
@@ -379,6 +445,14 @@ main() {
     log_success "NS3-AI installation completed successfully!"
     log_info "All NS3-AI examples have been built and are ready to use"
     log_warning "Remember: Multi-BSS example has known issues with MaxSlrc and MaxSsrc (burst option omitted)"
+    
+    # Display final hardware configuration info
+    gpu_status=$(check_nvidia_gpu; echo $?)
+    if [ $gpu_status -eq 0 ]; then
+        log_info "Installation completed with GPU support enabled"
+    else
+        log_info "Installation completed with CPU-only support (no NVIDIA GPU detected)"
+    fi
 }
 
 # Run main function
