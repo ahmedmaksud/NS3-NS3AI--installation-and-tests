@@ -447,7 +447,8 @@ main() {
     log_warning "Remember: Multi-BSS example has known issues with MaxSlrc and MaxSsrc (burst option omitted)"
     
     # Display final hardware configuration info
-    gpu_status=$(check_nvidia_gpu; echo $?)
+    check_nvidia_gpu
+    gpu_status=$?
     if [ $gpu_status -eq 0 ]; then
         log_info "Installation completed with GPU support enabled"
     else
