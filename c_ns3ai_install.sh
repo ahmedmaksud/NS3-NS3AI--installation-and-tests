@@ -4,8 +4,6 @@
 # There is a problem with the multi-bss example, in multi-bss.cc line 1786
 # The MaxSlrc and MaxSsrc are outdated, the alternative is not clear, I just omitted the burst option
 
-set -e  # Exit on any error
-
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 NS3_VERSION="3.44"
@@ -131,23 +129,28 @@ check_nvidia_gpu() {
 # Function to install CUDA support
 install_cuda_support() {
     log_info "Checking if CUDA installation is needed..."
+
+    # Temporarily disable exit on error for GPU detection
+    set +e
     
     # Check for NVIDIA GPU
     check_nvidia_gpu >/dev/null 2>&1
     gpu_status=$?
-    
+
+    # Re-enable exit on error
+    set -e
+
     case $gpu_status in
         0)
             log_info "NVIDIA GPU with working drivers detected. Installing CUDA support..."
             log_warning "This will install nvidia-cuda-toolkit - may take some time"
-            
-            sudo apt install -y nvidia-cuda-toolkit
-            
+            set +e  # Disable exit on error for optional CUDA installation
+            sudo apt install -y nvidia-cuda-toolkit || log_warning "Failed to install nvidia-cuda-toolkit, continuing with CPU-only support."
             log_info "Checking CUDA installation..."
-            nvcc --version
-            nvidia-smi
-            
-            log_success "CUDA installation completed"
+            nvcc --version || log_warning "nvcc not found. CUDA may not be fully installed."
+            nvidia-smi || log_warning "nvidia-smi not found. CUDA may not be fully installed."
+            set -e  # Re-enable exit on error
+            log_success "CUDA installation step completed"
             ;;
         2)
             log_warning "NVIDIA GPU detected but drivers not properly installed"
@@ -155,8 +158,10 @@ install_cuda_support() {
             echo
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 log_info "Installing CUDA support..."
-                sudo apt install -y nvidia-cuda-toolkit
-                log_success "CUDA installation completed (GPU drivers may need separate installation)"
+                set +e  # Disable exit on error for optional CUDA installation
+                sudo apt install -y nvidia-cuda-toolkit || log_warning "Failed to install nvidia-cuda-toolkit, continuing with CPU-only support."
+                set -e  # Re-enable exit on error
+                log_success "CUDA installation step completed (GPU drivers may need separate installation)"
             else
                 log_info "Skipping CUDA installation"
             fi
@@ -166,6 +171,7 @@ install_cuda_support() {
             log_info "NS3-AI will work with CPU-only TensorFlow and PyTorch libraries"
             ;;
     esac
+    return 0  # Always succeed
 }
 
 
@@ -192,9 +198,15 @@ clone_ns3ai() {
 install_tensorflow() {
     log_info "Installing TensorFlow C library..."
     
+    # Temporarily disable exit on error for GPU detection
+    set +e
+    
     # Determine which TensorFlow version to use based on GPU availability
     check_nvidia_gpu >/dev/null 2>&1
     gpu_status=$?
+    
+    # Re-enable exit on error
+    set -e
     
     if [ $gpu_status -eq 0 ]; then
         log_info "Using GPU-enabled TensorFlow"
@@ -405,6 +417,9 @@ build_individual_examples() {
 
 # Main execution
 main() {
+    # Set exit on error for the main script execution
+    set -e
+    
     log_info "Starting NS3-AI installation script..."
     
     # Validate and activate virtual environment
@@ -449,14 +464,18 @@ main() {
     log_warning "Remember: Multi-BSS example has known issues with MaxSlrc and MaxSsrc (burst option omitted)"
     
     # Display final hardware configuration info
+    set +e  # Disable exit on error for final GPU check
     check_nvidia_gpu
     gpu_status=$?
+    set -e  # Re-enable exit on error
+    
     if [ $gpu_status -eq 0 ]; then
         log_info "Installation completed with GPU support enabled"
     else
         log_info "Installation completed with CPU-only support (no NVIDIA GPU detected)"
     fi
 }
+
 
 # Run main function
 main "$@"
