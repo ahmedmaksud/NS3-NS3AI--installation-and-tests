@@ -108,15 +108,15 @@ install_python_packages() {
     
     local python_packages=(
         "pip --upgrade"
-        "cppyy"
-        "cmake-format"
         "setuptools"
         "wheel"
         "pyyaml"
-        "tensorflow==2.18.0"
-        "matplotlib"
-        "pandas"
+        "cmake-format"
         "tqdm"
+        "pandas"
+        "matplotlib"
+        "tensorflow==2.18.0"
+        "cppyy"
     )
     
     local failed_python_packages=()

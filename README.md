@@ -188,6 +188,8 @@ This repository provides a complete, battle-tested automated installation system
 
 **🚀 What Makes This Different**: Unlike simple installation scripts, this system has been forged through solving actual deployment challenges including LibTorch conflicts, Python binding failures, and version compatibility matrices.
 
+> **⚠️ IMPORTANT**: This project requires **Python 3.11**, **Git**, and **GitHub CLI (gh)** to be installed manually before running any scripts. See [Prerequisites](#-prerequisites) for installation instructions.
+
 ### 📁 Important Setup Instructions
 
 **Before running the scripts:**
@@ -299,15 +301,66 @@ This repository provides a complete, battle-tested automated installation system
 - **Storage**: At least 10GB free space
 - **Network**: Stable internet connection for downloads
 
-### Software Dependencies
+### ⚠️ **CRITICAL: Pre-Installation Requirements**
 
-- **Python**: 3.11 or higher
+**Before running any scripts, you MUST install these tools manually:**
+
+#### **1. Python 3.11 (REQUIRED)**
+This project explicitly requires Python 3.11 for TensorFlow 2.18.0 compatibility.
+
+```bash
+# Ubuntu/Debian installation
+sudo apt update
+sudo apt install python3.11 python3.11-dev python3.11-venv
+
+# Verify installation
+python3.11 --version
+# Should output: Python 3.11.x
+```
+
+#### **2. Git (REQUIRED)**
+Required for cloning repositories.
+
+```bash
+# Ubuntu/Debian installation
+sudo apt install git
+
+# Verify installation
+git --version
+# Should output: git version 2.x.x
+```
+
+#### **3. GitHub CLI (gh) (REQUIRED)**
+Required for cloning from GitHub repositories.
+
+```bash
+# Ubuntu/Debian installation
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+sudo apt update
+sudo apt install gh
+
+# Verify installation
+gh --version
+# Should output: gh version 2.x.x
+```
+
+### Software Dependencies (Auto-installed by scripts)
+
 - **GCC**: 9.0 or higher
 - **CMake**: 3.16 or higher
-- **Git**: For repository cloning
 - **Sudo Access**: Required for system package installation
 
 ## 🚀 Quick Start
+
+### ⚠️ **IMPORTANT: Prerequisites Check**
+
+**Before starting, ensure you have installed:**
+- ✅ **Python 3.11** (`python3.11 --version`)
+- ✅ **Git** (`git --version`) 
+- ✅ **GitHub CLI** (`gh --version`)
+
+If any of these are missing, please install them first using the commands in the [Prerequisites](#-prerequisites) section above.
 
 ### Complete Setup and Installation
 
@@ -322,7 +375,10 @@ git clone https://github.com/ahmedmaksud/NS3-NS3AI--installation-and-tests.git
 # 3. Change into the directory
 cd NS3-NS3AI--installation-and-tests
 
-# 4. Run the complete automated installation (everything installs in NS3-project)
+# 4. Verify prerequisites are installed
+python3.11 --version && git --version && gh --version
+
+# 5. Run the complete automated installation (everything installs in NS3-project)
 ./run_all_install.sh
 ```
 
@@ -784,6 +840,34 @@ endif()
 ### Common Issues and Solutions (Battle-Tested)
 
 > **💡 Pro Tip**: These solutions were discovered through extensive real-world debugging sessions and are proven to work.
+
+#### 0. Prerequisites Not Installed ⚠️ **MOST COMMON ISSUE**
+
+**Problem**: Scripts fail immediately or show "command not found" errors
+```bash
+Error: python3.11: command not found
+Error: git: command not found
+Error: gh: command not found
+```
+
+**Solution**: *(Install required tools first)*
+```bash
+# Install Python 3.11
+sudo apt update
+sudo apt install python3.11 python3.11-dev python3.11-venv
+
+# Install Git
+sudo apt install git
+
+# Install GitHub CLI
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+sudo apt update
+sudo apt install gh
+
+# Verify all tools are installed
+python3.11 --version && git --version && gh --version
+```
 
 #### 1. Virtual Environment Creation Fails
 
