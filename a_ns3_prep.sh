@@ -177,7 +177,7 @@ define_system_packages() {
     # List of required packages
     local packages=(
         python3-apt
-        gcc git g++ python3 python3-dev pkg-config sqlite3
+        gcc git g++ python3 python3-dev python3.11-dev pkg-config sqlite3
         python3-setuptools python3-numpy python3-pygraphviz python3-pip
         mercurial cmake libc6-dev libc6-dev-i386
         gdb valgrind gsl-bin libgsl-dev libgsl27 libgslcblas0
