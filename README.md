@@ -1,8 +1,8 @@
 # NS3 and NS3-AI Installation Scripts
 
 **Author:** Ahmed Maksud (ahmed.maksud@email.ucr.edu)  
-**Institution:** Texas State University  
-**PI:** Marcelo Menezes De Carvalho
+**PI:** Marcelo Menezes De Carvalho (mmcarvalho@txstate.edu)  
+**Institution:** Texas State University
 
 A comprehensive automated installation system for NS3 (Network Simulator 3) and NS3-AI (Python Wrapper) with complete testing and verification capabilities.
 
@@ -24,8 +24,7 @@ A comprehensive automated installation system for NS3 (Network Simulator 3) and 
 
 **Before starting, ensure you have installed:**
 - **Python 3.11** (`python3.11 --version`)
-- **Git** (`git --version`) 
-- **GitHub CLI** (`gh --version`)
+- **Git** (`git --version`)
 
 If any of these are missing, please install them first using the commands in the [Prerequisites](#-prerequisites) section.
 
@@ -43,7 +42,7 @@ git clone https://github.com/ahmedmaksud/NS3-NS3AI--installation-and-tests.git
 cd NS3-NS3AI--installation-and-tests
 
 # 4. Verify prerequisites are installed
-python3.11 --version && git --version && gh --version
+python3.11 --version && git --version
 
 # 5. Run the complete automated installation (everything installs in NS3-project)
 ./run_all_install.sh
@@ -80,11 +79,11 @@ python3.11 --version && git --version && gh --version
 
 This repository provides a complete automated installation system for NS3 (Network Simulator 3) and NS3-AI. The scripts have been refined through extensive testing and debugging to handle complex dependency conflicts, Python binding issues, and C++ library compatibility problems that commonly occur in NS3-AI installations.
 
-**What Makes This Different**: Unlike simple installation scripts, this system has been forged through solving actual deployment challenges including LibTorch conflicts, Python binding failures, and version compatibility matrices.
+**What Makes This Different**: Unlike simple installation scripts, this system has been developed through solving actual deployment challenges including LibTorch conflicts, Python binding failures, and version compatibility matrices.
 
 ### Key Features
 
-- **Battle-Tested Installation**: Solved real-world LibTorch conflicts, Python binding issues, and dependency problems
+- **Thoroughly Tested Installation**: Solved real-world LibTorch conflicts, Python binding issues, and dependency problems
 - **Robust Configuration**: Handles complex NS3-AI Python binding detection and library compatibility
 - **Comprehensive Testing**: Multi-level validation including NS3-AI specific binding verification
 - **Intelligent Reporting**: Detailed installation reports with system diagnostics and troubleshooting guidance
@@ -203,21 +202,6 @@ git --version
 # Should output: git version 2.x.x
 ```
 
-#### **3. GitHub CLI (gh) (REQUIRED)**
-Required for cloning from GitHub repositories.
-
-```bash
-# Ubuntu/Debian installation
-curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-sudo apt update
-sudo apt install gh
-
-# Verify installation
-gh --version
-# Should output: gh version 2.x.x
-```
-
 ### Software Dependencies (Auto-installed by scripts)
 
 - **GCC**: 9.0 or higher
@@ -285,17 +269,16 @@ The testing system generates comprehensive reports including:
 
 ## Troubleshooting
 
-### Common Issues and Solutions (Battle-Tested)
+### Common Issues and Solutions (Extensively Tested)
 
-> **Pro Tip**: These solutions were discovered through extensive real-world debugging sessions and are proven to work.
+> These solutions were discovered through extensive real-world debugging sessions and are proven to work.
 
-#### 0. Prerequisites Not Installed **MOST COMMON ISSUE**
+#### 0. Prerequisites Not Installed (most common issue)
 
 **Problem**: Scripts fail immediately or show "command not found" errors
 ```bash
 Error: python3.11: command not found
 Error: git: command not found
-Error: gh: command not found
 ```
 
 **Solution**: *(Install required tools first)*
@@ -307,14 +290,8 @@ sudo apt install python3.11 python3.11-dev python3.11-venv
 # Install Git
 sudo apt install git
 
-# Install GitHub CLI
-curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
-sudo apt update
-sudo apt install gh
-
 # Verify all tools are installed
-python3.11 --version && git --version && gh --version
+python3.11 --version && git --version
 ```
 
 #### 1. Virtual Environment Creation Fails
@@ -354,7 +331,7 @@ sudo apt install libc6-dev libc6-dev-i386
 ./ns3 build
 ```
 
-#### 3. NS3-AI Python Bindings Not Found **Newly Solved**
+#### 3. NS3-AI Python Bindings Not Found
 
 **Problem**: Script reports no NS3-AI Python bindings found
 ```bash
@@ -363,7 +340,7 @@ No NS3-AI C++ Python bindings found in build directory
 
 **Root Cause Discovery**: Bindings have `.cpython-311-x86_64-linux-gnu.so` extension, not simple `.so`
 
-**Solution**: *(Latest fix)*
+**Solution**:
 ```bash
 # Updated search pattern in scripts
 find contrib/ai -name "*ns3ai*.cpython*.so"
@@ -378,7 +355,7 @@ cd contrib/ai/examples/a-plus-b/use-msg-stru
 python3 -c "import ns3ai_apb_py_stru; print('Success!')"
 ```
 
-#### 4. Core NS3 Python Bindings Import Errors **Known Issue**
+#### 4. Core NS3 Python Bindings Import Errors
 
 **Problem**: Cannot import ns3 module in Python
 ```python
@@ -386,20 +363,20 @@ ImportError: list index out of range
 # Core NS3 v3.44 Python bindings have parsing issues
 ```
 
-**Critical Discovery**: *(Major breakthrough)*
+**Key Discovery**:
 ```bash
 # Core NS3 Python bindings in v3.44 have library name parsing issues
 # However, NS3-AI has its own independent pybind11-based binding system!
 ```
 
-**Solution Strategy**: *(Focus pivot)*
+**Solution**:
 ```bash
 # Don't fix core NS3 bindings - use NS3-AI bindings instead
 # NS3-AI Python bindings work perfectly without core NS3 bindings
 # Focus testing on: ns3ai_apb_py_stru, ns3ai_gym_msg_py, etc.
 ```
 
-#### 5. LibTorch Integration Issues **Critical Fix**
+#### 5. LibTorch Integration Issues
 
 **Problem**: LibTorch C library causes segmentation faults
 ```bash
@@ -421,16 +398,16 @@ if(LIBTORCH_PYTHON_LIBRARY)
 endif()
 ```
 
-#### 6. TensorFlow C Library Version Mismatch **Version Matrix**
+#### 6. TensorFlow C Library Version Mismatch
 
 **Problem**: TensorFlow Python/C library version conflicts
 ```bash
 ImportError: incompatible TensorFlow version
 ```
 
-**Critical Solution**: *(Exact version requirement)*
+**Solution**:
 ```bash
-# MUST use exactly these versions together:
+# Use exactly these versions together:
 Python 3.11 + TensorFlow 2.18.0 (pip) + TensorFlow 2.18.0 (C library)
 
 # Verify correct installation:
@@ -442,18 +419,25 @@ ls contrib/ai/model/libtensorflow/lib/
 # Should contain: libtensorflow.so.2
 ```
 
-#### 7. Multi-BSS Example Compilation Error **Auto-Fixed**
+#### 7. Multi-BSS Example Issues **Partial Fix**
 
-**Problem**: burst-sink.h compilation error  
+**Problem 1**: burst-sink.h compilation error  
 ```bash
 Error: 'map' is not declared in this scope
 ```
-
 **Solution**: *(Automatically handled by script)*
 ```bash
 # Fixed automatically in c_ns3ai_install.sh:
 sed -i '33i #include <map>' contrib/ai/examples/multi-bss/vr-app/model/burst-sink.h
 ```
+
+**Problem 2**: WiFi API deprecation at runtime *(Not auto-fixed)*
+```bash
+Attribute 'MaxSlrc' is obsolete, with no fallback: Use WifiMac::FrameRetryLimit instead
+```
+**Root Cause**: Lines 1787-1790 in multi-bss.cc use deprecated `MaxSlrc` and `MaxSsrc` attributes removed in NS3 v3.44
+
+**Status**: Example compiles but fails at runtime due to NS3 API changes. Requires updating WiFi configuration to use `WifiMac::FrameRetryLimit`
 
 ## Educational Resources
 
@@ -500,6 +484,7 @@ What seemed straightforward became a deep dive into dependency conflicts, versio
 | **LibTorch segmentation faults** | `libtorch_python.so` conflicts with pip PyTorch | Exclude from CMake: `list(REMOVE_ITEM LIBTORCH_LIBRARIES ...)` |
 | **TensorFlow version mismatch** | Mixed Python 3.10/3.11 environments | Enforce Python 3.11 + TensorFlow 2.18.0 throughout |
 | **Bindings not found** | Wrong search pattern (`*.so` vs `*.cpython*.so`) | Use `find contrib/ai -name "*ns3ai*.cpython*.so"` |
+| **Multi-BSS runtime failure** | WiFi API deprecation: `MaxSlrc`/`MaxSsrc` removed in v3.44 | Update to `WifiMac::FrameRetryLimit` (requires NS3-AI upstream fix) |
 
 ### Major Breakthrough
 
@@ -511,13 +496,13 @@ This discovery changed everything:
 - Python ML environment (TensorFlow, PyTorch, Gymnasium) fully functional
 - Stop debugging what can't be fixed; focus on what works
 
-### Working Version Matrix
+### Tested Component Versions
 
 ```
 Python 3.11 + TensorFlow 2.18.0 + PyTorch 2.8.0+cpu + NS3 3.44
 ```
 
-This specific combination was discovered through extensive testing. CPU-only PyTorch avoids GPU compatibility issues.
+This combination was discovered through extensive testing.
 
 ### Lessons Learned
 
@@ -525,7 +510,3 @@ This specific combination was discovered through extensive testing. CPU-only PyT
 2. **Component isolation** — Test parts independently before integration  
 3. **Graceful degradation** — When something doesn't work, focus on what does
 4. **Comprehensive logging** — Enables rapid issue identification
-
-### Philosophy
-
-*"Perfect is the enemy of good"* — This system prioritizes working, robust solutions over theoretical completeness.

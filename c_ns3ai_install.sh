@@ -1,8 +1,8 @@
 #!/bin/bash
 #
 # Author: Ahmed Maksud; email: ahmed.maksud@email.ucr.edu
+# PI: Marcelo Menezes De Carvalho; email: mmcarvalho@txstate.edu
 # Texas State University
-# PI: Marcelo Menezes De Carvalho
 #
 # NS3-AI Installation Script
 # Important notes:
