@@ -26,6 +26,7 @@ cmake-cache/
 *.log
 *.out
 installation_*.log
+installation_report*.txt
 
 # System files
 .DS_Store
@@ -42,3 +43,46 @@ Thumbs.db
 # Backup files
 *.bak
 *.backup
+
+# NS3-specific
+ns-allinone-*/
+.ns3rc
+*.o
+*.a
+*.so
+*.so.*
+
+# NS3-AI specific
+contrib/ai/model/libtensorflow/
+contrib/ai/model/libtorch/
+*.pb
+*.pbtxt
+run_*.py
+train_*.py
+
+# Machine Learning artifacts
+*.h5
+*.pkl
+*.pth
+*.onnx
+checkpoints/
+models/
+training_logs/
+
+# Test and simulation outputs
+*.stats
+*.dat
+*.csv
+results/
+outputs/
+
+# IDE and editor specific
+.DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+.settings/
