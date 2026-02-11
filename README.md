@@ -26,6 +26,15 @@ A comprehensive automated installation system for NS3 (Network Simulator 3) and 
 - **Python 3.11** (`python3.11 --version`)
 - **Git** (`git --version`)
 
+> **GitHub Codespaces Users**: Run the following commands to install Python 3.11:
+> ```bash
+> # Add Python 3.11 repository and install
+> sudo add-apt-repository -y ppa:deadsnakes/ppa
+> sudo mv /etc/apt/sources.list.d/yarn.list /etc/apt/sources.list.d/yarn.list.disabled
+> sudo apt update
+> sudo apt install -y python3.11 python3.11-venv python3.11-dev git
+> ```
+
 If any of these are missing, please install them first using the commands in the [Prerequisites](#-prerequisites) section.
 
 ### Complete Setup and Installation
