@@ -193,6 +193,7 @@ define_system_packages() {
 		libprotobuf-dev protobuf-compiler
 		pybind11-dev
 		libabsl-dev
+		libclang-dev llvm-dev
 		gir1.2-goocanvas-2.0 python3-gi python3-gi-cairo gir1.2-gtk-3.0 ipython3
 		tcpdump wireshark openmpi-bin openmpi-common openmpi-doc
 		libopenmpi-dev texlive dvipng latexmk libeigen3-dev
@@ -287,11 +288,11 @@ main() {
 	# Update system
 	update_system
 
+	# Install system dependencies first (required for some Python packages like cppyy)
+	install_system_dependencies
+
 	# Install Python packages
 	install_python_packages
-
-	# Install system dependencies
-	install_system_dependencies
 
 	# Verify installation
 	verify_installation
